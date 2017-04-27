@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static android.webkit.ConsoleMessage.MessageLevel.LOG;
-import static com.dealfaro.luca.androidhomephone.R.id.detailView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,8 +60,14 @@ public class MainActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                //Log.d(LOG_TAG, "Got:" + response);
-                my_textView.setText(response.substring(12,response.length()-2));
+                try {
+                    JSONObject jsonBody = new JSONObject(response);
+                    my_textView.setText(jsonBody.getString("result"));
+                } catch (JSONException e){
+                    throw new RuntimeException(e);
+                }
+                // JANKY WAY
+                // my_textView.setText(response.substring(12,response.length()-2));
             }
         }, new Response.ErrorListener() {
             @Override
