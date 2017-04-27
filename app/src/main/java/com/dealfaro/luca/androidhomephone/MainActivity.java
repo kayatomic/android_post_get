@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
@@ -16,6 +17,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
@@ -46,19 +48,21 @@ public class MainActivity extends AppCompatActivity {
         // We need the "final" keyword here to guarantee that the
         // value does not change, as it is used in the callbacks.
 
-        getList();
-        sendMsg("Anna", "Clara", "Tschuss!");
-        getMessages("mario");
+        //getList();
+        //sendMsg("Anna", "Clara", "Tschuss!");
+        //getMessages("abracadabra");
     }
 
-    private void sendMsg(final String sender, final String recipient, final String msg) {
-
+    public void postMessage(View v) {
+        final TextView my_textView = (TextView) findViewById(R.id.my_text);
+        String post_url = "https://luca-ucsc-teaching-backend.appspot.com/hw3/request_via_post";
         StringRequest sr = new StringRequest(Request.Method.POST,
-                "https://luca-ucsc-teaching-backend.appspot.com/api_w_ndb/send_msg",
+                post_url,
                 new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(LOG_TAG, "Got:" + response);
+                //Log.d(LOG_TAG, "Got:" + response);
+                my_textView.setText(response.substring(12,response.length()-2));
             }
         }, new Response.ErrorListener() {
             @Override
@@ -68,9 +72,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected Map<String,String> getParams(){
                 Map<String,String> params = new HashMap<String, String>();
-                params.put("sender", sender);
-                params.put("recipient" , recipient);
-                params.put("msg", msg);
+                params.put("token", "abracadabra");
+                //my_textView.setText(params.get("token"));
                 return params;
             }
 
@@ -85,64 +88,23 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void getMessage(View v) {
+        final TextView my_textView = (TextView) findViewById(R.id.my_text);
 
-    private void getMessages(final String recipient) {
+        String url = "https://luca-ucsc-teaching-backend.appspot.com/hw3/request_via_get";
 
-        // Instantiate the RequestQueue.
-        String url = "https://luca-ucsc-teaching-backend.appspot.com/api_w_ndb/get_msg_for_me";
-
-        String my_url = url + "?recipient=" + URLEncoder.encode(recipient);
+        String get_url = url + "?token=" + "abracadabra";
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                (Request.Method.GET, get_url, null, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(LOG_TAG, "Received: " + response.toString());
-                        // Ok, let's disassemble a bit the json object.
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO Auto-generated method stub
-                        Log.d(LOG_TAG, error.toString());
-                    }
-                });
-
-        // In some cases, we don't want to cache the request.
-        // jsObjRequest.setShouldCache(false);
-
-        queue.add(jsObjRequest);
-    }
-
-
-
-    private void getList() {
-        final TextView mTextView = (TextView) findViewById(R.id.my_text);
-        final TextView detailView = (TextView) findViewById(R.id.detailView);
-
-        // Instantiate the RequestQueue.
-        String url = "https://luca-ucsc-teaching-backend.appspot.com/api/get_list";
-
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        mTextView.setText("Response json: " + response.toString());
-                        Log.d(LOG_TAG, "Received: " + response.toString());
-                        // Ok, let's disassemble a bit the json object.
-                        try {
-                            JSONArray receivedList = response.getJSONArray("mylist");
-                            String allTogether = "(";
-                            for (int i = 0; i < receivedList.length(); i++) {
-                                allTogether += receivedList.getString(i) + ";";
-                            }
-                            allTogether += ")";
-                            detailView.setText(allTogether);
-                        } catch (Exception e) {
-                            mTextView.setText("Aaauuugh, received bad json: " + e.getStackTrace());
+                        try{
+                            my_textView.setText(response.getString("result"));
+                        } catch (JSONException e) {
+                            //my_textView.setText("Received bad json: " + e.getStackTrace());
+                            throw new RuntimeException(e);
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -154,10 +116,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        // In some cases, we don't want to cache the request.
-        // jsObjRequest.setShouldCache(false);
-
         queue.add(jsObjRequest);
+
     }
 
 }
